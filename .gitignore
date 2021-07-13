@@ -25,6 +25,7 @@ bin/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+node_modules/
 
 ### NetBeans ###
 /nbproject/private/

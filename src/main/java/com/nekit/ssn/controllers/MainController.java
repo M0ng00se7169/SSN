@@ -4,6 +4,7 @@ import com.nekit.ssn.domains.User;
 
 import com.nekit.ssn.repos.MessageRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +17,9 @@ import java.util.HashMap;
 @RequestMapping("/")
 public class MainController {
     private final MessageRepo messageRepo;
+
+    @Value("${spring.profiles.active}")
+    private String profile;
 
     @Autowired
     public MainController(MessageRepo messageRepo) {
@@ -30,6 +34,8 @@ public class MainController {
         data.put("messages", messageRepo.findAll());
 
         model.addAttribute("frontendData", data);
+        model.addAttribute("isDevMode", "dev".equals(profile));
+
         return "index";
     }
 }
