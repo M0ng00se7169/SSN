@@ -2,6 +2,7 @@ package com.nekit.ssn.controllers;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.nekit.ssn.domains.Message;
+import com.nekit.ssn.domains.User;
 import com.nekit.ssn.domains.Views;
 import com.nekit.ssn.dto.EventType;
 import com.nekit.ssn.dto.MetaDTO;
@@ -14,10 +15,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
@@ -54,9 +57,14 @@ public class MessageController {
     }
 
     @PostMapping
-    public Message create(@RequestBody Message message) throws IOException {
+    public Message create(
+            @RequestBody Message message,
+            @AuthenticationPrincipal User user
+    ) throws IOException {
         message.setCreationDate(LocalDateTime.now());
         fillMeta(message);
+        message.setAuthor(user);
+
         Message updatedMessage = messageRepo.save(message);
         wsSender.accept(EventType.CREATE, updatedMessage);
 
