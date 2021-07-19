@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
@@ -29,7 +28,7 @@ import java.util.regex.Pattern;
 @RestController
 @RequestMapping("message")
 public class MessageController {
-    private static String URL_PATTERN = "https?://?[\\w\\d._\\-%/?=&#]+";
+    private static String URL_PATTERN = "https?:\\/\\/?[\\w\\d\\._\\-%\\/\\?=&#]+";
     private static String IMAGE_PATTERN = "\\.(jpeg|jpg|gif|png)$";
 
     private static Pattern URL_REGEX = Pattern.compile(URL_PATTERN, Pattern.CASE_INSENSITIVE);
@@ -64,8 +63,8 @@ public class MessageController {
         message.setCreationDate(LocalDateTime.now());
         fillMeta(message);
         message.setAuthor(user);
-
         Message updatedMessage = messageRepo.save(message);
+
         wsSender.accept(EventType.CREATE, updatedMessage);
 
         return updatedMessage;
@@ -79,6 +78,7 @@ public class MessageController {
         BeanUtils.copyProperties(message, messageFromDb, "id");
         fillMeta(messageFromDb);
         Message updatedMessage = messageRepo.save(messageFromDb);
+
         wsSender.accept(EventType.UPDATE, updatedMessage);
 
         return updatedMessage;
@@ -98,6 +98,7 @@ public class MessageController {
             String url = text.substring(matcher.start(), matcher.end());
 
             matcher = IMG_REGEX.matcher(url);
+
             message.setLink(url);
 
             if (matcher.find()) {
@@ -117,7 +118,7 @@ public class MessageController {
 
         Elements title = doc.select("meta[name$=title],meta[property$=title]");
         Elements description = doc.select("meta[name$=description],meta[property$=description]");
-        Elements cover = doc.select("meta[name$=cover],meta[property$=cover]");
+        Elements cover = doc.select("meta[name$=image],meta[property$=image]");
 
         return new MetaDTO(
                 getContent(title.first()),

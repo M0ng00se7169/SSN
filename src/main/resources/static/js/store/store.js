@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import messagesApi from 'api/messages'
-import commentsApi from 'api/comments'
+import commentApi from 'api/comments'
 
 Vue.use(Vuex)
 
@@ -11,7 +11,7 @@ export default new Vuex.Store({
         profile: frontendData.profile
     },
     getters: {
-        sortedMessages: state => state.messages.sort((a, b) => -(a.id - b.id))
+        sortedMessages: state => (state.messages || []).sort((a, b) => -(a.id - b.id))
     },
     mutations: {
         addMessageMutation(state, message) {
@@ -41,26 +41,28 @@ export default new Vuex.Store({
         },
         addCommentMutation(state, comment) {
             const updateIndex = state.messages.findIndex(item => item.id === comment.message.id)
-            const message = state.messages[updateIndex];
+            const message = state.messages[updateIndex]
 
-            state.messages = [
-                ...state.messages.slice(0, updateIndex),
-                {
-                    ...message,
-                    comments: [
-                        ...message.comments,
-                        comment
-                    ]
-                },
-                ...state.messages.slice(updateIndex + 1)
-            ]
+            if (!message.comments.find(it => it.id === comment.id)) {
+                state.messages = [
+                    ...state.messages.slice(0, updateIndex),
+                    {
+                        ...message,
+                        comments: [
+                            ...message.comments,
+                            comment
+                        ]
+                    },
+                    ...state.messages.slice(updateIndex + 1)
+                ]
+            }
         },
     },
     actions: {
-        async addMessageAction({commit}, message) {
+        async addMessageAction({commit, state}, message) {
             const result = await messagesApi.add(message)
-            const data =  await result.json()
-            const index = this.state.messages.findIndex(item => item.id === data.id)
+            const data = await result.json()
+            const index = state.messages.findIndex(item => item.id === data.id)
 
             if (index > -1) {
                 commit('updateMessageMutation', data)
@@ -71,21 +73,19 @@ export default new Vuex.Store({
         async updateMessageAction({commit}, message) {
             const result = await messagesApi.update(message)
             const data = await result.json()
-
             commit('updateMessageMutation', data)
-
         },
         async removeMessageAction({commit}, message) {
             const result = await messagesApi.remove(message.id)
+
             if (result.ok) {
                 commit('removeMessageMutation', message)
             }
         },
         async addCommentAction({commit, state}, comment) {
-            const response = await commentsApi.add(comment);
+            const response = await commentApi.add(comment)
             const data = await response.json()
-
-            commit('addCommentMutation', comment)
+            commit('addCommentMutation', data)
         }
     }
 })

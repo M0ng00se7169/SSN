@@ -27,7 +27,7 @@ public class WsSender {
                 .writerWithView(view);
 
         return (EventType eventType, T payload) -> {
-            String value;
+            String value = null;
 
             try {
                 value = writer.writeValueAsString(payload);

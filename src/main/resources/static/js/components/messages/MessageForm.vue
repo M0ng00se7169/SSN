@@ -4,8 +4,7 @@
                 label="New message"
                 placeholder="Write something"
                 v-model="text"
-                @keyup.enter="save"
-        />
+                @keyup.enter="save"></v-text-field>
         <v-btn @click="save">
             Save
         </v-btn>
@@ -20,7 +19,7 @@
         data() {
             return {
                 text: '',
-                id: ''
+                id: null
             }
         },
         watch: {
@@ -44,7 +43,7 @@
                 }
 
                 this.text = ''
-                this.id = ''
+                this.id = null
 
             }
         }
