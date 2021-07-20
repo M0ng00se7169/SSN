@@ -8,6 +8,7 @@
     <script th:inline="javascript">
         let frontendData = [[${frontendData}]];
         let messages = JSON.parse([[${messages}]]);
+        let profile = [# th:utext="${profile}" /]
     </script>
 </head>
 <body>
