@@ -2,12 +2,14 @@ package com.nekit.ssn.service;
 
 import com.nekit.ssn.domains.Message;
 import com.nekit.ssn.domains.User;
+import com.nekit.ssn.domains.UserSubscription;
 import com.nekit.ssn.domains.Views;
 import com.nekit.ssn.dto.EventType;
 import com.nekit.ssn.dto.MessagePageDTO;
 import com.nekit.ssn.dto.MetaDTO;
 import com.nekit.ssn.dto.ObjectType;
 import com.nekit.ssn.repos.MessageRepo;
+import com.nekit.ssn.repos.UserSubscriptionRepo;
 import com.nekit.ssn.util.WsSender;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -21,24 +23,32 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class MessageService {
-    private static String URL_PATTERN = "https?:\\/\\/?[\\w\\d\\._\\-%\\/\\?=&#]+";
-    private static String IMAGE_PATTERN = "\\.(jpeg|jpg|gif|png)$";
+    private static final String URL_PATTERN = "https?:\\/\\/?[\\w\\d\\._\\-%\\/\\?=&#]+";
+    private static final String IMAGE_PATTERN = "\\.(jpeg|jpg|gif|png)$";
 
-    private static Pattern URL_REGEX = Pattern.compile(URL_PATTERN, Pattern.CASE_INSENSITIVE);
-    private static Pattern IMG_REGEX = Pattern.compile(IMAGE_PATTERN, Pattern.CASE_INSENSITIVE);
+    private static final Pattern URL_REGEX = Pattern.compile(URL_PATTERN, Pattern.CASE_INSENSITIVE);
+    private static final Pattern IMG_REGEX = Pattern.compile(IMAGE_PATTERN, Pattern.CASE_INSENSITIVE);
 
     private final MessageRepo messageRepo;
+    private final UserSubscriptionRepo userSubscriptionRepo;
     private final BiConsumer<EventType, Message> wsSender;
 
     @Autowired
-    public MessageService(MessageRepo messageRepo, WsSender wsSender) {
+    public MessageService(
+            MessageRepo messageRepo,
+            UserSubscriptionRepo userSubscriptionRepo,
+            WsSender wsSender
+    ) {
         this.messageRepo = messageRepo;
+        this.userSubscriptionRepo = userSubscriptionRepo;
         this.wsSender = wsSender.getSender(ObjectType.MESSAGE, Views.IdName.class);
     }
 
@@ -110,8 +120,16 @@ public class MessageService {
         return updatedMessage;
     }
 
-    public MessagePageDTO findAll(Pageable pageable) {
-        Page<Message> page = messageRepo.findAll(pageable);
+    public MessagePageDTO findForUser(Pageable pageable, User user) {
+        List<User> channels = userSubscriptionRepo.findBySubscriber(user)
+                .stream()
+                .map(UserSubscription::getChannel)
+                .collect(Collectors.toList());
+
+        channels.add(user);
+
+        Page<Message> page = messageRepo.findByAuthorIn(channels, pageable);
+
         return new MessagePageDTO(
                 page.getContent(),
                 pageable.getPageNumber(),

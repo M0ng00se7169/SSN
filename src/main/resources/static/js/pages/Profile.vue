@@ -46,7 +46,7 @@
             isISubscribed() {
                 return this.profile.subscribers &&
                     this.profile.subscribers.find(subscription => {
-                        return subscription.id === this.$store.state.profile.id
+                        return subscription.subscriber === this.$store.state.profile.id
                     })
             }
         },
@@ -64,7 +64,7 @@
                 const id = this.$route.params.id || this.$store.state.profile.id
                 const data = await profileApi.get(id)
                 this.profile = await data.json()
-                // this.$forceUpdate()
+                this.$forceUpdate()
             }
         },
         beforeMount() {
