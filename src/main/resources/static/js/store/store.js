@@ -8,7 +8,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         messages,
-        profile: frontendData.profile
+        ...frontendData
     },
     getters: {
         sortedMessages: state => (state.messages || []).sort((a, b) => -(a.id - b.id))
@@ -43,20 +43,33 @@ export default new Vuex.Store({
             const updateIndex = state.messages.findIndex(item => item.id === comment.message.id)
             const message = state.messages[updateIndex]
 
-            if (!message.comments.find(it => it.id === comment.id)) {
+            if (!(message.comments || []).find(it => it.id === comment.id)) {
                 state.messages = [
                     ...state.messages.slice(0, updateIndex),
                     {
                         ...message,
-                        comments: [
-                            ...message.comments,
-                            comment
-                        ]
+                        comments: message.comments === null ? [comment] : [...message.comments,comment]
                     },
                     ...state.messages.slice(updateIndex + 1)
                 ]
             }
         },
+        addMessagePageMutation(state, messages) {
+            const targetMessages = state.messages
+                .concat(messages)
+                .reduce((res, val) => {
+                    res[val.id] = val
+                    return res
+                }, {})
+
+            state.messages = Object.values(targetMessages)
+        },
+        updateTotalPagesMutation(state, totalPages) {
+            state.totalPages = totalPages
+        },
+        updateCurrentPageMutation(state, currentPage) {
+            state.currentPage = currentPage
+        }
     },
     actions: {
         async addMessageAction({commit, state}, message) {
@@ -86,6 +99,14 @@ export default new Vuex.Store({
             const response = await commentApi.add(comment)
             const data = await response.json()
             commit('addCommentMutation', data)
+        },
+        async loadPageAction({commit, state}) {
+            const response = await messagesApi.page(state.currentPage + 1)
+            const data = await response.json()
+
+            commit('addMessagePageMutation', data.messages)
+            commit('updateTotalPagesMutation', data.totalPages)
+            commit('updateCurrentPageMutation', Math.min(data.currentPage, data.totalPages - 1))
         }
     }
 })
