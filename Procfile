@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -D clientSecret=$clientSecret -jar build/libs/*.jar
