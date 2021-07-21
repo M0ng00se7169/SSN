@@ -15,7 +15,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -99,14 +98,18 @@ public class MessageService {
     }
 
     public Message update(Message messageFromDb, Message message, User user) throws IOException {
-        messageFromDb.setText(message.getText());
-        fillMeta(messageFromDb);
-        messageFromDb.setAuthor(user);
-        Message updatedMessage = messageRepo.save(messageFromDb);
+        if (messageFromDb.getAuthor().equals(user)) {
+            messageFromDb.setText(message.getText());
+            fillMeta(messageFromDb);
+            messageFromDb.setAuthor(user);
+            Message updatedMessage = messageRepo.save(messageFromDb);
 
-        wsSender.accept(EventType.UPDATE, updatedMessage);
+            wsSender.accept(EventType.UPDATE, updatedMessage);
 
-        return updatedMessage;
+            return updatedMessage;
+        }
+
+        return messageFromDb;
     }
 
     public Message create(Message message, User user) throws IOException {

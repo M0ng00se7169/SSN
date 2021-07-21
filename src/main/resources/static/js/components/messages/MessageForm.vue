@@ -12,14 +12,14 @@
 </template>
 
 <script>
-    import { mapActions } from 'vuex'
+    import {mapActions} from 'vuex'
 
     export default {
         props: ['messageAttr'],
         data() {
             return {
                 text: '',
-                id: ''
+                id: null
             }
         },
         watch: {
@@ -48,8 +48,7 @@
                 }
 
                 this.text = ''
-                this.id = ''
-
+                this.id = null
             }
         }
     }

@@ -11,8 +11,8 @@
         </v-card-text>
         <media v-if="message.link" :message="message"></media>
         <v-card-actions>
-            <v-btn value="Edit" @click="edit" small flat round>Edit</v-btn>
-            <v-btn icon @click="del" small>
+            <v-btn value="Edit" @click="edit" small flat round :disabled="!isAuthor">Edit</v-btn>
+            <v-btn icon @click="del" small :disabled="!isAuthor">
                 <v-icon>delete</v-icon>
             </v-btn>
         </v-card-actions>
@@ -33,6 +33,11 @@
     export default {
         props: ['message', 'editMessage'],
         components: { Media, CommentList, UserLink },
+        computed: {
+            isAuthor() {
+                return this.message.author.name === profile.name
+            }
+        },
         methods: {
             ...mapActions(['removeMessageAction']),
             edit() {
