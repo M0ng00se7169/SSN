@@ -49,7 +49,7 @@ public class MessageService {
     ) {
         this.messageRepo = messageRepo;
         this.userSubscriptionRepo = userSubscriptionRepo;
-        this.wsSender = wsSender.getSender(ObjectType.MESSAGE, Views.IdName.class);
+        this.wsSender = wsSender.getSender(ObjectType.MESSAGE, Views.FullMessage.class);
     }
 
     private void fillMeta(Message message) throws IOException {
@@ -99,7 +99,7 @@ public class MessageService {
     }
 
     public Message update(Message messageFromDb, Message message, User user) throws IOException {
-        BeanUtils.copyProperties(message, messageFromDb, "id");
+        messageFromDb.setText(message.getText());
         fillMeta(messageFromDb);
         messageFromDb.setAuthor(user);
         Message updatedMessage = messageRepo.save(messageFromDb);
