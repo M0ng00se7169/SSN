@@ -2,11 +2,22 @@ plugins {
 	id 'org.springframework.boot' version '2.5.2'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
+	id 'com.github.node-gradle.node' version "3.1.0"
 }
+
+apply plugin: 'com.github.node-gradle.node'
 
 group = 'com.nekit'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+sourceCompatibility = 1.8
+
+task buildFront(type: YarnTask) {
+	args = ['build']
+}
+
+yarn_install.dependsOn(yarn_cache_clean)
+buildFront.dependsOn(yarn_install)
+processResources.dependsOn(buildFront)
 
 repositories {
 	mavenCentral()
@@ -28,9 +39,13 @@ dependencies {
 	implementation 'io.sentry:sentry-spring:1.7.16'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.jsoup:jsoup:1.14.1'
+	testCompileOnly 'junit:junit:4.12'
+	testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.3.1'
+
 }
 
 
 test {
 	useJUnitPlatform()
+
 }
