@@ -1,0 +1,1 @@
+web: java -DclientId=$clientId $JAVA_OPTS $JAVA_OPTS -jar build/libs/ssn-0.0.1-SNAPSHOT.jar
